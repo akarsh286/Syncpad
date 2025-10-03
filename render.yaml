@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: syncpad-server
+    env: node
+    rootDir: server
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    envVars:
+      - key: FRONTEND_URL
+        # Make sure this is your correct Vercel URL
+        value: https://syncpad-agcvk8ayv-akarsh-shuklas-projects-7968ce4f.vercel.app
