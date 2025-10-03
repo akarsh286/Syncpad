@@ -3,6 +3,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 
+// This allows us to use environment variables
+require('dotenv').config();
+
 const app = express();
 app.use(cors());
 
@@ -10,19 +13,15 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Your React app's address
+    origin: process.env.FRONTEND_URL, // Use the environment variable
     methods: ["GET", "POST"],
   },
 });
 
-// ... (keep all the existing setup code)
-
 io.on('connection', (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
-  // Listen for code changes from a client
   socket.on("code_change", (data) => {
-    // Broadcast the changes to all OTHER clients
     socket.broadcast.emit("receive_code", data);
   });
 
@@ -31,9 +30,8 @@ io.on('connection', (socket) => {
   });
 });
 
-// ... (keep the server.listen code)
-
-const PORT = 5000;
+// Render provides a PORT environment variable. We must use it.
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
