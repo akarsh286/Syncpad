@@ -7,7 +7,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { okaidia } from '@uiw/codemirror-theme-okaidia';
 import './App.css';
 
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect(import.meta.env.VITE_BACKEND_URL);
 
 function App() {
   const [code, setCode] = useState("console.log('hello world!');");
