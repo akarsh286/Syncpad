@@ -10,12 +10,13 @@ import { FaPlay, FaSyncAlt, FaSave, FaCopy, FaPlus, FaSignInAlt, FaSun, FaMoon, 
 import './App.css';
 import { nanoid } from 'nanoid';
 
-// --- Theme Toggle Component (unchanged) ---
+// --- Theme Toggle Component ---
 const ThemeToggle = ({ theme, setTheme }) => {
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
   };
+
   return (
     <button onClick={toggleTheme} className="p-2 rounded-full bg-white/10 hover:bg-white/20 dark:bg-black/20 dark:hover:bg-black/30 transition-colors">
       {theme === 'dark' ? <FaSun className="text-yellow-300" /> : <FaMoon className="text-purple-400" />}
@@ -23,85 +24,89 @@ const ThemeToggle = ({ theme, setTheme }) => {
   );
 };
 
-// --- HomePage Component (unchanged) ---
+
+// --- Components for different pages ---
+
 const HomePage = () => {
-    const [roomId, setRoomId] = useState('');
-    const [joining, setJoining] = useState(false);
-    const [loaded, setLoaded] = useState(false);
+  const [roomId, setRoomId] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    // Force dark theme for the homepage
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    setLoaded(true);
+  }, []);
+
+  const createNewRoom = (e) => {
+    e.preventDefault();
+    const id = nanoid(6);
+    window.location.href = `/editor/${id}`;
+  };
   
-    useEffect(() => {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      setLoaded(true);
-    }, []);
-  
-    const createNewRoom = (e) => {
-      e.preventDefault();
-      const id = nanoid(6);
-      window.location.href = `/editor/${id}`;
-    };
-    
-    const joinRoom = async () => {
-      if (roomId) {
-        setJoining(true);
-        try {
-          const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-          const response = await axios.get(`${API_URL}/api/room/${roomId}`);
-          if (response.data.exists) {
-            window.location.href = `/editor/${roomId}`;
-          } else {
-            alert("Invalid Room ID. This room does not exist or is empty.");
-          }
-        } catch (error) {
-          console.error("Error checking room:", error);
-          alert("Could not connect to the server to verify the Room ID. Please try again.");
-        } finally {
-          setJoining(false);
+  const joinRoom = async () => {
+    if (roomId) {
+      setJoining(true);
+      try {
+        const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+        const response = await axios.get(`${API_URL}/api/room/${roomId}`);
+        
+        if (response.data.exists) {
+          window.location.href = `/editor/${roomId}`;
+        } else {
+          alert("Invalid Room ID. This room does not exist or is empty.");
         }
-      } else {
-        alert("Please enter a Room ID.");
+      } catch (error) {
+        console.error("Error checking room:", error);
+        alert("Could not connect to the server to verify the Room ID. Please try again.");
+      } finally {
+        setJoining(false);
       }
-    };
-  
-    return (
-      <div className="flex items-center justify-center h-screen text-white overflow-hidden">
-         <div className={`p-10 rounded-2xl shadow-2xl w-full max-w-lg mx-4 text-center transition-all duration-700 ease-out ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} bg-black/30 backdrop-blur-xl border border-white/10`}>
-          <h1 className={`text-8xl font-extrabold mb-4 transition-all duration-700 ease-out delay-100 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-              SyncPad
-            </span>
-          </h1>
-          <p className={`mb-10 transition-all duration-700 ease-out delay-200 ${loaded ? 'opacity-100' : 'opacity-0'} text-gray-400`}>
-            Collaborate in real-time. Code with anyone, anywhere.
-          </p>
-          <div className={`flex flex-col space-y-5 transition-all duration-700 ease-out delay-300 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+    } else {
+      alert("Please enter a Room ID.");
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center h-screen text-white overflow-hidden">
+       <div className={`p-10 rounded-2xl shadow-2xl w-full max-w-lg mx-4 text-center transition-all duration-700 ease-out ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} bg-black/30 backdrop-blur-xl border border-white/10`}>
+        <h1 className={`text-8xl font-extrabold mb-4 transition-all duration-700 ease-out delay-100 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            SyncPad
+          </span>
+        </h1>
+        <p className={`mb-10 transition-all duration-700 ease-out delay-200 ${loaded ? 'opacity-100' : 'opacity-0'} text-gray-400`}>
+          Collaborate in real-time. Code with anyone, anywhere.
+        </p>
+        <div className={`flex flex-col space-y-5 transition-all duration-700 ease-out delay-300 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <button 
+            onClick={createNewRoom} 
+            className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all transform hover:scale-105"
+          >
+            <FaPlus className="mr-2"/> Create a New Room
+          </button>
+          <div className="flex items-center pt-4">
+            <input
+              type="text"
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
+              placeholder="Enter Room ID to Join"
+              className="p-3 rounded-l-xl focus:outline-none focus:ring-2 flex-grow border transition-all bg-white/5 text-white focus:ring-purple-500 border-transparent focus:border-purple-500"
+              onKeyUp={(e) => e.key === 'Enter' && joinRoom()}
+            />
             <button 
-              onClick={createNewRoom} 
-              className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all transform hover:scale-105"
+              onClick={joinRoom} 
+              disabled={joining} 
+              className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-r-xl transition-colors disabled:bg-gray-500"
             >
-              <FaPlus className="mr-2"/> Create a New Room
+              <FaSignInAlt className="mr-2"/> {joining ? 'Joining...' : 'Join'}
             </button>
-            <div className="flex items-center pt-4">
-              <input
-                type="text"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
-                placeholder="Enter Room ID to Join"
-                className="p-3 rounded-l-xl focus:outline-none focus:ring-2 flex-grow border transition-all bg-white/5 text-white focus:ring-purple-500 border-transparent focus:border-purple-500"
-                onKeyUp={(e) => e.key === 'Enter' && joinRoom()}
-              />
-              <button 
-                onClick={joinRoom} 
-                disabled={joining} 
-                className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-r-xl transition-colors disabled:bg-gray-500"
-              >
-                <FaSignInAlt className="mr-2"/> {joining ? 'Joining...' : 'Join'}
-              </button>
-            </div>
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 };
 
 const EditorPage = ({ roomId, theme, setTheme }) => {
@@ -126,13 +131,19 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
     s.on('connect', () => { setSocketId(s.id); });
     s.emit("join_room", roomId);
     s.on("receive_code", (data) => { setCode(data); });
-    s.on("room_update", (connectedClients) => { 
-      setClients(connectedClients);
-      // Logic to handle new users joining the call
+    s.on("room_update", (connectedClients) => {
+        setClients(connectedClients);
+        // If voice chat is active, create connections for new users
+        if (localStream) {
+            const newClients = connectedClients.filter(client => client.id !== s.id && !peerConnections.current[client.id]);
+            newClients.forEach(client => {
+                createPeerConnection(client.id, localStream, true, s);
+            });
+        }
     });
 
     // --- WebRTC Signaling Listeners ---
-    s.on('webrtc_offer', handleOffer);
+    s.on('webrtc_offer', (data) => handleOffer(data, s));
     s.on('webrtc_answer', handleAnswer);
     s.on('webrtc_ice_candidate', handleIceCandidate);
 
@@ -141,7 +152,7 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
       Object.values(peerConnections.current).forEach(pc => pc.close());
       s.disconnect();
     };
-  }, [roomId]);
+  }, [roomId, localStream]);
 
   // --- WebRTC Logic ---
   const startVoiceChat = async () => {
@@ -152,7 +163,7 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
       
       const otherUsers = clients.filter(client => client.id !== socketId);
       otherUsers.forEach(user => {
-        createPeerConnection(user.id, stream, true);
+        createPeerConnection(user.id, stream, true, socket);
       });
 
     } catch (error) {
@@ -161,7 +172,7 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
     }
   };
 
-  const createPeerConnection = (remoteSocketId, stream, isInitiator) => {
+  const createPeerConnection = (remoteSocketId, stream, isInitiator, socketInstance) => {
     if (peerConnections.current[remoteSocketId]) return;
 
     const pc = new RTCPeerConnection({
@@ -171,8 +182,8 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
     pc.onicecandidate = event => {
-      if (event.candidate && socket) {
-        socket.emit('webrtc_ice_candidate', { to: remoteSocketId, candidate: event.candidate });
+      if (event.candidate && socketInstance) {
+        socketInstance.emit('webrtc_ice_candidate', { to: remoteSocketId, candidate: event.candidate });
       }
     };
 
@@ -180,29 +191,31 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
       setRemoteStreams(prev => ({ ...prev, [remoteSocketId]: event.streams[0] }));
     };
 
-    if (isInitiator && socket) {
+    if (isInitiator && socketInstance) {
       pc.createOffer()
         .then(offer => pc.setLocalDescription(offer))
         .then(() => {
-          socket.emit('webrtc_offer', { to: remoteSocketId, sdp: pc.localDescription });
+          socketInstance.emit('webrtc_offer', { to: remoteSocketId, sdp: pc.localDescription });
         });
     }
     
     peerConnections.current[remoteSocketId] = pc;
   };
   
-  const handleOffer = ({ sdp, from }) => {
+  const handleOffer = ({ sdp, from }, socketInstance) => {
     if (localStream) {
-        createPeerConnection(from, localStream, false);
+        createPeerConnection(from, localStream, false, socketInstance);
         const pc = peerConnections.current[from];
-        pc.setRemoteDescription(new RTCSessionDescription(sdp))
-        .then(() => pc.createAnswer())
-        .then(answer => pc.setLocalDescription(answer))
-        .then(() => {
-            if (socket) {
-                socket.emit('webrtc_answer', { to: from, sdp: pc.localDescription });
-            }
-        });
+        if (pc) {
+          pc.setRemoteDescription(new RTCSessionDescription(sdp))
+          .then(() => pc.createAnswer())
+          .then(answer => pc.setLocalDescription(answer))
+          .then(() => {
+              if (socketInstance) {
+                  socketInstance.emit('webrtc_answer', { to: from, sdp: pc.localDescription });
+              }
+          });
+        }
     }
   };
   
@@ -228,8 +241,7 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
   };
 
   const otherClients = clients.filter(client => client && client.id !== socketId);
-  // ... (handleRun, handleSave, etc remain the same) ...
-
+  
   const onChange = (value) => {
     setCode(value);
     if (socket) {
@@ -281,11 +293,11 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
              {/* Voice Chat Controls */}
             <div className="flex items-center space-x-2">
                 {!localStream ? (
-                <button onClick={startVoiceChat} title="Start Voice Chat" className="flex items-center p-2 rounded-full bg-green-600/20 text-green-300 hover:bg-green-600/40 transition-colors">
+                <button onClick={startVoiceChat} title="Start Voice Chat" className="flex items-center p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/40 transition-colors">
                     <FaMicrophone />
                 </button>
                 ) : (
-                <button onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"} className={`flex items-center p-2 rounded-full transition-colors ${isMuted ? 'bg-red-600/20 text-red-300 hover:bg-red-600/40' : 'bg-blue-600/20 text-blue-300 hover:bg-blue-600/40'}`}>
+                <button onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"} className={`flex items-center p-2 rounded-full transition-colors ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/40' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/40'}`}>
                     {isMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
                 </button>
                 )}
@@ -313,7 +325,6 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
         </div>
       </header>
       
-      {/* ... (rest of EditorPage JSX is the same) ... */}
       <div className={`flex items-center justify-between p-2 border-b z-10 flex-shrink-0 ${theme === 'dark' ? 'bg-black/20 backdrop-blur-lg border-white/10' : 'bg-white/50 backdrop-blur-lg border-gray-200'}`}>
         <div className="flex items-center space-x-3">
           <label htmlFor="language-select" className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Language:</label>
@@ -356,7 +367,7 @@ const EditorPage = ({ roomId, theme, setTheme }) => {
   );
 };
 
-// --- Main App Component (unchanged) ---
+// --- Main App Component ---
 function App() {
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
@@ -381,4 +392,3 @@ function App() {
 }
 
 export default App;
-
