@@ -1,2 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
 @import "tailwindcss";
+
+
+
+/* --- Global Styles & Default Animated Background --- */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #020617; /* Default dark background */
+  overflow: hidden;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 15% 25%, rgba(59, 130, 246, 0.2) 0%, transparent 30%),
+    radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.2) 0%, transparent 30%);
+  animation: aurora 20s infinite alternate ease-in-out;
+  z-index: -1;
+}
+
+/* Light theme background override */
+html.light body {
+  background-color: #f1f5f9; /* Light gray for light mode */
+}
+html.light body::before {
+  display: none; /* Hide animated background in light mode */
+}
+
+
+@keyframes aurora {
+  0% { transform: scale(1.5) rotate(0deg); }
+  100% { transform: scale(2) rotate(20deg); }
+}
+
+/* --- Professional Scrollbar --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+html.dark ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+html.dark ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 0, 0, 0.3); }
+html.dark ::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.3); }
+
+/* --- Fix for Dropdown Option Colors --- */
+select option {
+  background: #ffffff;
+  color: #000000;
+}
+html.dark select option {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+/* Ensure CodeMirror stretches properly */
+.cm-editor { height: 100%; }
 

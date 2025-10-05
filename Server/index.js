@@ -24,6 +24,32 @@ const LANGUAGE_IDS = {
   cpp: 54,
 };
 
+const userMapping = {};
+const userColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FED766', '#2AB7CA'];
+
+function getClientsInRoom(roomId) {
+  const clients = [];
+  const room = io.sockets.adapter.rooms.get(roomId);
+  if (room) {
+    for (const clientId of room) {
+      clients.push(userMapping[clientId]);
+    }
+  }
+  return clients;
+}
+
+// --- NEW ENDPOINT TO CHECK IF A ROOM EXISTS ---
+app.get("/api/room/:roomId", (req, res) => {
+  const { roomId } = req.params;
+  const room = io.sockets.adapter.rooms.get(roomId);
+  // A room exists if it's defined and has at least one person in it
+  if (room && room.size > 0) {
+    res.json({ exists: true });
+  } else {
+    res.json({ exists: false });
+  }
+});
+
 app.post("/api/run", async (req, res) => {
   const { language, code } = req.body;
   if (!LANGUAGE_IDS[language]) {
@@ -60,18 +86,34 @@ app.post("/api/run", async (req, res) => {
 io.on('connection', (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
-  // --- ROOM LOGIC ---
   socket.on("join_room", (roomId) => {
     socket.join(roomId);
+    userMapping[socket.id] = {
+      id: socket.id,
+      username: `User ${Math.floor(Math.random() * 1000)}`,
+      color: userColors[Math.floor(Math.random() * userColors.length)]
+    };
+    const clients = getClientsInRoom(roomId);
+    io.to(roomId).emit("room_update", clients);
     console.log(`User ${socket.id} joined room ${roomId}`);
   });
 
   socket.on("code_change", (data) => {
-    // Broadcast to the specific room
     socket.to(data.room).emit("receive_code", data.code);
   });
 
+  socket.on('disconnecting', () => {
+    const rooms = Array.from(socket.rooms);
+    rooms.forEach((roomId) => {
+      if (roomId !== socket.id) {
+          const clients = getClientsInRoom(roomId).filter(client => client && client.id !== socket.id);
+          socket.to(roomId).emit("room_update", clients);
+      }
+    });
+  });
+
   socket.on('disconnect', () => {
+    delete userMapping[socket.id];
     console.log('User Disconnected', socket.id);
   });
 });
